@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>uniRP - Plataforma Estratégica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="flex h-screen bg-gray-50 text-gray-800">
+
+    <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-xl z-10">
+        <div class="p-6 text-2xl font-black border-b border-slate-800 tracking-tighter text-indigo-400">
+            uniRP <span class="text-xs text-slate-500 font-normal">Estável</span>
+        </div>
+        <nav class="flex-1 py-4 overflow-y-auto">
+            <button onclick="ativar('dash')" class="w-full text-left p-4 hover:bg-slate-800 border-l-4 border-indigo-500 bg-slate-800 transition-colors focus:outline-none" id="btn-dash"><i class="fas fa-chart-pie w-6 text-center"></i> Dashboard</button>
+            <button onclick="ativar('cerebro')" class="w-full text-left p-4 hover:bg-slate-800 border-l-4 border-transparent transition-colors focus:outline-none" id="btn-cerebro"><i class="fas fa-brain w-6 text-center"></i> Cérebro Institucional</button>
+            <button onclick="ativar('atas')" class="w-full text-left p-4 hover:bg-slate-800 border-l-4 border-transparent transition-colors focus:outline-none" id="btn-atas"><i class="fas fa-file-signature w-6 text-center"></i> Inteligência de Atas</button>
+            <button onclick="ativar('hub')" class="w-full text-left p-4 hover:bg-slate-800 border-l-4 border-transparent transition-colors focus:outline-none" id="btn-hub"><i class="fas fa-pen-nib w-6 text-center"></i> Hub de Conteúdo</button>
+            <button onclick="ativar('plan')" class="w-full text-left p-4 hover:bg-slate-800 border-l-4 border-transparent transition-colors focus:outline-none" id="btn-plan"><i class="fas fa-calendar-alt w-6 text-center"></i> Planejamento 360º</button>
+            <button onclick="ativar('clipping')" class="w-full text-left p-4 hover:bg-slate-800 border-l-4 border-transparent transition-colors focus:outline-none" id="btn-clipping"><i class="fas fa-satellite-dish w-6 text-center"></i> Clipping & Alertas</button>
+            <button onclick="ativar('transparencia')" class="w-full text-left p-4 hover:bg-slate-800 border-l-4 border-transparent transition-colors focus:outline-none" id="btn-transparencia"><i class="fas fa-file-contract w-6 text-center"></i> Transparência</button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-10 overflow-auto w-full">
+        
+        <section id="sec-dash" class="block">
+            <h1 class="text-4xl font-black mb-2 text-slate-800">Painel Estratégico</h1>
+            <p class="text-slate-500 mb-8">Visão geral da comunicação.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-indigo-500 transition-colors text-center" onclick="ativar('atas')"><i class="fas fa-file-signature text-emerald-500 text-2xl mb-2"></i><br><span class="font-bold text-slate-700 text-sm">Processar Ata</span></div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-indigo-500 transition-colors text-center" onclick="ativar('hub')"><i class="fas fa-pen-nib text-blue-500 text-2xl mb-2"></i><br><span class="font-bold text-slate-700 text-sm">Redigir Material</span></div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-indigo-500 transition-colors text-center" onclick="ativar('plan')"><i class="fas fa-calendar-alt text-purple-500 text-2xl mb-2"></i><br><span class="font-bold text-slate-700 text-sm">Nova Campanha</span></div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-indigo-500 transition-colors text-center" onclick="ativar('clipping')"><i class="fas fa-satellite-dish text-red-500 text-2xl mb-2"></i><br><span class="font-bold text-slate-700 text-sm">Analisar Clipping</span></div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-indigo-500 transition-colors text-center" onclick="ativar('transparencia')"><i class="fas fa-file-contract text-amber-500 text-2xl mb-2"></i><br><span class="font-bold text-slate-700 text-sm">Relatório Gestão</span></div>
+            </div>
+        </section>
+
+        <section id="sec-cerebro" class="hidden">
+            <h1 class="text-4xl font-black mb-2 text-slate-800">Cérebro Institucional</h1>
+            <p class="text-slate-500 mb-8">Conecte a inteligência e o banco de dados da sua plataforma.</p>
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 max-w-3xl">
+                <p class="font-bold text-indigo-700 mb-4 border-b pb-2"><i class="fas fa-key mr-2"></i> Chaves de Conexão (APIs)</p>
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Chave da Inteligência (Google Gemini)</label>
+                    <input type="password" id="input-api-gemini" class="w-full border border-slate-300 p-3 rounded-xl outline-none font-mono text-sm bg-slate-50" placeholder="Cole sua chave do Google AI Studio aqui...">
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Supabase URL</label>
+                        <input type="text" id="input-supa-url" class="w-full border border-slate-300 p-3 rounded-xl outline-none font-mono text-sm bg-slate-50" placeholder="https://xyz.supabase.co">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Supabase Key (Anon Public)</label>
+                        <input type="password" id="input-supa-key" class="w-full border border-slate-300 p-3 rounded-xl outline-none font-mono text-sm bg-slate-50" placeholder="sb_publishable_...">
+                    </div>
+                </div>
+                <p class="font-bold text-indigo-700 mb-4 border-b pb-2"><i class="fas fa-building mr-2"></i> Identidade do Cliente</p>
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Nome da Instituição/Autarquia</label>
+                    <input type="text" id="input-nome" class="w-full border border-slate-300 p-4 rounded-xl outline-none" placeholder="Ex: Conselho Federal...">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Diretrizes e Tom de Voz</label>
+                    <textarea id="input-missao" class="w-full border border-slate-300 p-4 h-32 rounded-xl outline-none" placeholder="Qual o tom de voz da comunicação?"></textarea>
+                </div>
+                <button id="btn-salvar-nuvem" onclick="salvarDadosNaNuvem()" class="bg-indigo-600 text-white font-bold text-lg px-8 py-4 rounded-xl hover:bg-indigo-700 w-full shadow-lg shadow-indigo-200 transition-all transform hover:-translate-y-1"><i class="fas fa-cloud-upload-alt mr-2"></i> Gravar Configurações e Testar Banco</button>
+            </div>
+        </section>
+
+        <section id="sec-atas" class="hidden">
+            <h1 class="text-4xl font-black mb-2 text-slate-800">Inteligência de Atas</h1>
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 max-w-4xl">
+                <textarea id="input-ata" class="w-full border border-slate-300 p-4 h-64 mb-6 rounded-xl outline-none font-mono text-slate-600" placeholder="Cole a transcrição da reunião aqui..."></textarea>
+                <button id="btn-processar-ata" onclick="processarIA('ata')" class="bg-emerald-600 text-white font-bold text-lg px-8 py-4 rounded-xl hover:bg-emerald-700 w-full"><i class="fas fa-magic mr-2"></i> Processar Reunião</button>
+                <div id="box-resultado-ata" class="hidden mt-8 p-6 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div id="texto-resultado-ata" class="text-slate-700 whitespace-pre-wrap"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-hub" class="hidden">
+            <h1 class="text-4xl font-black mb-2 text-slate-800">Hub de Conteúdo</h1>
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 max-w-4xl">
+                <select id="input-formato" class="w-full border border-slate-300 p-4 mb-6 rounded-xl outline-none text-lg">
+                    <option value="Nota Oficial">Nota Oficial</option>
+                    <option value="Press Release">Press Release</option>
+                    <option value="Post de LinkedIn">Post para LinkedIn</option>
+                    <option value="Post de Instagram">Post para Instagram</option>
+                </select>
+                <textarea id="input-pauta" class="w-full border border-slate-300 p-4 h-32 mb-6 rounded-xl outline-none" placeholder="Fato gerador ou assunto principal..."></textarea>
+                <button id="btn-processar-hub" onclick="processarIA('hub')" class="bg-blue-600 text-white font-bold text-lg px-8 py-4 rounded-xl hover:bg-blue-700 w-full"><i class="fas fa-bullhorn mr-2"></i> Redigir Material</button>
+                <div id="box-resultado-hub" class="hidden mt-8 p-6 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div id="texto-resultado-hub" class="text-slate-700 whitespace-pre-wrap font-serif text-lg"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-plan" class="hidden">
+            <h1 class="text-4xl font-black mb-2 text-slate-800">Planejamento 360º</h1>
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 max-w-4xl">
+                <textarea id="input-objetivo" class="w-full border border-slate-300 p-4 h-32 mb-6 rounded-xl outline-none" placeholder="Objetivo da campanha..."></textarea>
+                <button id="btn-processar-plan" onclick="processarIA('plan')" class="bg-purple-600 text-white font-bold text-lg px-8 py-4 rounded-xl hover:bg-purple-700 w-full"><i class="fas fa-chess-knight mr-2"></i> Gerar Plano Tático</button>
+                <div id="box-resultado-plan" class="hidden mt-8 p-6 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div id="texto-resultado-plan" class="text-slate-700 whitespace-pre-wrap"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-clipping" class="hidden">
+            <h1 class="text-4xl font-black mb-2 text-slate-800">Clipping & Alertas</h1>
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 max-w-4xl">
+                <textarea id="input-clipping" class="w-full border border-slate-300 p-4 h-48 mb-6 rounded-xl outline-none" placeholder="Cole notícias ou menções..."></textarea>
+                <button id="btn-processar-clipping" onclick="processarIA('clipping')" class="bg-red-600 text-white font-bold text-lg px-8 py-4 rounded-xl hover:bg-red-700 w-full"><i class="fas fa-satellite-dish mr-2"></i> Analisar Sentimento</button>
+                <div id="box-resultado-clipping" class="hidden mt-8 p-6 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div id="texto-resultado-clipping" class="text-slate-700 whitespace-pre-wrap"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-transparencia" class="hidden">
+            <h1 class="text-4xl font-black mb-2 text-slate-800">Transparência Governamental</h1>
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 max-w-4xl">
+                <textarea id="input-transparencia" class="w-full border border-slate-300 p-4 h-48 mb-6 rounded-xl outline-none" placeholder="Liste as ações do mês..."></textarea>
+                <button id="btn-processar-transparencia" onclick="processarIA('transparencia')" class="bg-amber-600 text-white font-bold text-lg px-8 py-4 rounded-xl hover:bg-amber-700 w-full"><i class="fas fa-file-contract mr-2"></i> Gerar Relatório Oficial</button>
+                <div id="box-resultado-transparencia" class="hidden mt-8 p-6 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div id="texto-resultado-transparencia" class="text-slate-700 whitespace-pre-wrap"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        window.onload = function() {
+            try {
+                if(localStorage.getItem('unirp_api_gemini')) document.getElementById('input-api-gemini').value = localStorage.getItem('unirp_api_gemini');
+                if(localStorage.getItem('unirp_supa_url')) document.getElementById('input-supa-url').value = localStorage.getItem('unirp_supa_url');
+                if(localStorage.getItem('unirp_supa_key')) document.getElementById('input-supa-key').value = localStorage.getItem('unirp_supa_key');
+                if(localStorage.getItem('unirp_nome')) document.getElementById('input-nome').value = localStorage.getItem('unirp_nome');
+                if(localStorage.getItem('unirp_missao')) document.getElementById('input-missao').value = localStorage.getItem('unirp_missao');
+            } catch(e) {}
+        }
+
+        function ativar(aba) {
+            const secoes = ['dash', 'cerebro', 'atas', 'hub', 'plan', 'clipping', 'transparencia'];
+            secoes.forEach(id => {
+                let sec = document.getElementById('sec-' + id);
+                let btn = document.getElementById('btn-' + id);
+                if(sec) sec.style.display = 'none';
+                if(btn) btn.className = "w-full text-left p-4 hover:bg-slate-800 border-l-4 border-transparent transition-colors focus:outline-none";
+            });
+            document.getElementById('sec-' + aba).style.display = 'block';
+            document.getElementById('btn-' + aba).className = "w-full text-left p-4 hover:bg-slate-800 border-l-4 border-indigo-500 bg-slate-800 transition-colors focus:outline-none";
+        }
+
+        async function salvarDadosNaNuvem() {
+            const apiGemini = document.getElementById('input-api-gemini').value;
+            const supaUrl = document.getElementById('input-supa-url').value;
+            const supaKey = document.getElementById('input-supa-key').value;
+            const nome = document.getElementById('input-nome').value;
+            const missao = document.getElementById('input-missao').value;
+            
+            if(!apiGemini || !supaUrl || !supaKey || !nome) { 
+                alert('Preencha as 3 chaves e o Nome da Instituição antes de salvar.'); 
+                return; 
+            }
+            
+            localStorage.setItem('unirp_api_gemini', apiGemini);
+            localStorage.setItem('unirp_supa_url', supaUrl);
+            localStorage.setItem('unirp_supa_key', supaKey);
+            localStorage.setItem('unirp_nome', nome);
+            localStorage.setItem('unirp_missao', missao);
+
+            const btn = document.getElementById('btn-salvar-nuvem');
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Conectando...';
+            btn.disabled = true;
+
+            try {
+                const banco = supabase.createClient(supaUrl, supaKey);
+                const { error } = await banco.from('instituicoes').insert([{ nome: nome, missao_tom_voz: missao }]);
+                if (error) throw new Error(error.message);
+                alert('Sucesso absoluto! A identidade foi gravada no Banco de Dados do Supabase.');
+            } catch (error) {
+                alert('Erro na conexão com o Supabase: ' + error.message);
+            } finally {
+                btn.innerHTML = textoOriginal;
+                btn.disabled = false;
+            }
+        }
+
+        async function processarIA(modulo) {
+            const api = localStorage.getItem('unirp_api_gemini');
+            const nome = localStorage.getItem('unirp_nome');
+            const missao = localStorage.getItem('unirp_missao');
+            
+            if(!api) { alert('Vá no Cérebro Institucional e grave a Chave do Gemini.'); return; }
+
+            let btn, resBox, resText, prompt;
+            if (modulo === 'ata') { prompt = `RP de ${nome}. Resuma a ata: ${document.getElementById('input-ata').value}`; btn = document.getElementById('btn-processar-ata'); resBox = document.getElementById('box-resultado-ata'); resText = document.getElementById('texto-resultado-ata'); }
+            else if (modulo === 'hub') { prompt = `Redija ${document.getElementById('input-formato').value} sobre ${document.getElementById('input-pauta').value} para ${nome}. Diretrizes: ${missao}.`; btn = document.getElementById('btn-processar-hub'); resBox = document.getElementById('box-resultado-hub'); resText = document.getElementById('texto-resultado-hub'); }
+            else if (modulo === 'plan') { prompt = `Crie Plano Tático para ${document.getElementById('input-objetivo').value} em ${nome}.`; btn = document.getElementById('btn-processar-plan'); resBox = document.getElementById('box-resultado-plan'); resText = document.getElementById('texto-resultado-plan'); }
+            else if (modulo === 'clipping') { prompt = `Analise menções para ${nome}: ${document.getElementById('input-clipping').value}.`; btn = document.getElementById('btn-processar-clipping'); resBox = document.getElementById('box-resultado-clipping'); resText = document.getElementById('texto-resultado-clipping'); }
+            else if (modulo === 'transparencia') { prompt = `Crie Relatório de Gestão para ${nome} usando: ${document.getElementById('input-transparencia').value}.`; btn = document.getElementById('btn-processar-transparencia'); resBox = document.getElementById('box-resultado-transparencia'); resText = document.getElementById('texto-resultado-transparencia'); }
+
+            const txtOrg = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processando...'; 
+            btn.disabled = true; resBox.style.display = 'none';
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${api}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const data = await response.json();
+                if(data.error) throw new Error(data.error.message);
+                
+                resText.innerHTML = data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                resBox.style.display = 'block';
+            } catch (error) { alert('Erro: ' + error.message); } finally { btn.innerHTML = txtOrg; btn.disabled = false; }
+        }
+    </script>
+</body>
+</html>
