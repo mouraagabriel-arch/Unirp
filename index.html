@@ -14,10 +14,13 @@
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .modal-overlay { background-color: rgba(0,0,0,0.5); }
-        .toast { animation: slideUp 0.3s ease; }
+        .toast { animation: slideUp 0.3s ease; position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
         @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .avatar-sm { width: 32px; height: 32px; }
         .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .btn-loading { opacity: 0.7; pointer-events: none; }
+        .error-message { color: #dc2626; font-size: 12px; margin-top: 4px; }
+        .success-message { color: #16a34a; font-size: 12px; margin-top: 4px; }
     </style>
 </head>
 <body class="flex h-screen bg-gray-50 text-gray-800">
@@ -33,44 +36,113 @@
                 <p class="text-slate-500 text-sm mt-1">Gestão Institucional com IA</p>
             </div>
 
+            <!-- FORMULÁRIO DE LOGIN -->
             <div id="login-form" class="space-y-4">
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-2">Email</label>
                     <input type="email" id="input-login-email" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500" placeholder="seu@email.com">
+                    <div id="error-email-login" class="error-message"></div>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-2">Senha</label>
-                    <input type="password" id="input-login-senha" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500" placeholder="••••••••">
+                    <div class="relative">
+                        <input type="password" id="input-login-senha" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500 pr-10" placeholder="••••••••">
+                        <button type="button" onclick="novaFuncao_toggleMostrarSenha('input-login-senha')" class="absolute right-3 top-3 text-slate-500 hover:text-slate-700">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="error-senha-login" class="error-message"></div>
                 </div>
-                <button onclick="novaFuncao_fazerLogin()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition">
+                <button id="btn-fazer-login" onclick="novaFuncao_fazerLogin()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition">
                     <i class="fas fa-sign-in-alt mr-2"></i> Entrar
                 </button>
             </div>
 
-            <div class="mt-6 text-center text-sm text-slate-500">
-                <p>Não tem conta? <a href="#" onclick="novaFuncao_mostrarCadastro()" class="text-indigo-600 font-bold hover:underline">Criar conta</a></p>
+            <!-- DIVIDER -->
+            <div class="my-6 flex items-center">
+                <div class="flex-1 border-t border-slate-300"></div>
+                <span class="px-3 text-sm text-slate-500">ou</span>
+                <div class="flex-1 border-t border-slate-300"></div>
             </div>
 
+            <!-- LOGIN COM GOOGLE -->
+            <button id="btn-google-login" onclick="novaFuncao_loginComGoogle()" class="w-full border-2 border-slate-300 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-50 transition flex items-center justify-center gap-2">
+                <i class="fab fa-google"></i> Entrar com Google
+            </button>
+
+            <!-- LINK PARA CADASTRO E ESQUECI SENHA -->
+            <div class="mt-6 text-center text-sm text-slate-500 space-y-2">
+                <p>Não tem conta? <a href="#" onclick="novaFuncao_mostrarCadastro()" class="text-indigo-600 font-bold hover:underline">Criar conta</a></p>
+                <p><a href="#" onclick="novaFuncao_mostrarRecuperacao()" class="text-indigo-600 font-bold hover:underline">Esqueci minha senha</a></p>
+            </div>
+
+            <!-- FORMULÁRIO DE CADASTRO -->
             <div id="cadastro-form" class="hidden space-y-4 mt-6">
                 <h2 class="text-xl font-bold text-slate-800 mb-4">Criar Conta</h2>
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-2">Nome Completo</label>
                     <input type="text" id="input-cadastro-nome" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500" placeholder="Seu nome">
+                    <div id="error-nome-cadastro" class="error-message"></div>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-2">Email</label>
                     <input type="email" id="input-cadastro-email" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500" placeholder="seu@email.com">
+                    <div id="error-email-cadastro" class="error-message"></div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Cargo/Função</label>
+                    <input type="text" id="input-cadastro-cargo" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500" placeholder="Ex: Gestor de Comunicação">
+                    <div id="error-cargo-cadastro" class="error-message"></div>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-2">Senha</label>
-                    <input type="password" id="input-cadastro-senha" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500" placeholder="••••••••">
+                    <div class="relative">
+                        <input type="password" id="input-cadastro-senha" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500 pr-10" placeholder="Mínimo 8 caracteres">
+                        <button type="button" onclick="novaFuncao_toggleMostrarSenha('input-cadastro-senha')" class="absolute right-3 top-3 text-slate-500 hover:text-slate-700">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="error-senha-cadastro" class="error-message"></div>
                 </div>
-                <button onclick="novaFuncao_criarConta()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Confirmar Senha</label>
+                    <div class="relative">
+                        <input type="password" id="input-cadastro-senha-confirma" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500 pr-10" placeholder="Confirme a senha">
+                        <button type="button" onclick="novaFuncao_toggleMostrarSenha('input-cadastro-senha-confirma')" class="absolute right-3 top-3 text-slate-500 hover:text-slate-700">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="error-senha-confirma-cadastro" class="error-message"></div>
+                </div>
+                <label class="flex items-start gap-2">
+                    <input type="checkbox" id="input-cadastro-termos" class="mt-1">
+                    <span class="text-sm text-slate-700">Li e concordo com os <a href="#" onclick="novaFuncao_abrirTermos()" class="text-indigo-600 font-bold hover:underline">Termos de Uso</a> e <a href="#" onclick="novaFuncao_abrirPrivacidade()" class="text-indigo-600 font-bold hover:underline">Política de Privacidade</a></span>
+                </label>
+                <div id="error-termos-cadastro" class="error-message"></div>
+                <button id="btn-criar-conta" onclick="novaFuncao_criarConta()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition">
                     <i class="fas fa-user-plus mr-2"></i> Criar Conta
                 </button>
                 <button onclick="novaFuncao_voltarLogin()" class="w-full bg-slate-300 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-400 transition">
                     Voltar ao Login
                 </button>
+            </div>
+
+            <!-- FORMULÁRIO DE RECUPERAÇÃO DE SENHA -->
+            <div id="recuperacao-form" class="hidden space-y-4 mt-6">
+                <h2 class="text-xl font-bold text-slate-800 mb-4">Recuperar Senha</h2>
+                <p class="text-sm text-slate-600 mb-4">Digite seu email e enviaremos um link para redefinir sua senha.</p>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Email</label>
+                    <input type="email" id="input-recuperacao-email" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500" placeholder="seu@email.com">
+                    <div id="error-email-recuperacao" class="error-message"></div>
+                </div>
+                <button id="btn-enviar-recuperacao" onclick="novaFuncao_enviarRecuperacao()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition">
+                    <i class="fas fa-envelope mr-2"></i> Enviar Link
+                </button>
+                <button onclick="novaFuncao_voltarLogin()" class="w-full bg-slate-300 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-400 transition">
+                    Voltar ao Login
+                </button>
+                <div id="success-recuperacao" class="success-message"></div>
             </div>
         </div>
     </div>
@@ -139,11 +211,11 @@
                     <div class="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
                         <i class="fas fa-user text-white text-xs"></i>
                     </div>
-                    <div class="flex-1">
-                        <p class="text-xs font-bold" id="user-name">Usuário</p>
-                        <p class="text-xs text-slate-400" id="user-role">Editor</p>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold truncate" id="user-name">Carregando...</p>
+                        <p class="text-xs text-slate-400 truncate" id="user-role">Editor</p>
                     </div>
-                    <button onclick="novaFuncao_logout()" class="text-slate-400 hover:text-white">
+                    <button onclick="novaFuncao_logout()" class="text-slate-400 hover:text-white" title="Sair">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
                 </div>
@@ -223,580 +295,507 @@
                 <!-- PLANEJAMENTO ESTRATÉGICO -->
                 <section id="sec-planejamento" class="hidden">
                     <h1 class="text-4xl font-black text-slate-800 mb-8">Planejamento Estratégico</h1>
-                    
                     <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            
-                            <!-- COLUNA ESQUERDA -->
-                            <div class="space-y-6">
-                                <div>
-                                    <label class="block text-sm font-bold text-slate-700 mb-2">Instituição</label>
-                                    <input type="text" id="input-plan-instituicao" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500" placeholder="Nome da instituição">
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-bold text-slate-700 mb-2">Missão</label>
-                                    <textarea id="input-plan-missao" class="w-full border border-slate-300 p-3 h-24 rounded-xl outline-none focus:border-indigo-500" placeholder="Descrição da missão"></textarea>
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-bold text-slate-700 mb-2">Visão</label>
-                                    <textarea id="input-plan-visao" class="w-full border border-slate-300 p-3 h-24 rounded-xl outline-none focus:border-indigo-500" placeholder="Descrição da visão"></textarea>
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-bold text-slate-700 mb-2">Valores</label>
-                                    <textarea id="input-plan-valores" class="w-full border border-slate-300 p-3 h-24 rounded-xl outline-none focus:border-indigo-500" placeholder="Descreva os valores"></textarea>
-                                </div>
-                            </div>
-
-                            <!-- COLUNA DIREITA -->
-                            <div class="space-y-6">
-                                <div>
-                                    <label class="block text-sm font-bold text-slate-700 mb-2">Público-Alvo</label>
-                                    <textarea id="input-plan-publico" class="w-full border border-slate-300 p-3 h-24 rounded-xl outline-none focus:border-indigo-500" placeholder="Descrição do público-alvo"></textarea>
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-bold text-slate-700 mb-2">Produtos/Serviços</label>
-                                    <textarea id="input-plan-produtos" class="w-full border border-slate-300 p-3 h-24 rounded-xl outline-none focus:border-indigo-500" placeholder="Liste os principais produtos ou serviços"></textarea>
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-bold text-slate-700 mb-2">Diferenciais</label>
-                                    <textarea id="input-plan-diferenciais" class="w-full border border-slate-300 p-3 h-24 rounded-xl outline-none focus:border-indigo-500" placeholder="Diferenciais da instituição"></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-8 pt-8 border-t border-slate-200">
-                            <h3 class="text-lg font-bold text-slate-800 mb-6">Análise SWOT</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-sm font-bold text-green-700 mb-2">Forças</label>
-                                    <textarea id="input-plan-forcas" class="w-full border border-slate-300 p-3 h-24 rounded-xl outline-none focus:border-indigo-500" placeholder="Principais forças"></textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-red-700 mb-2">Fraquezas</label>
-                                    <textarea id="input-plan-fraquezas" class="w-full border border-slate-300 p-3 h-24 rounded-xl outline-none focus:border-indigo-500" placeholder="Principais fraquezas"></textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-blue-700 mb-2">Oportunidades</label>
-                                    <textarea id="input-plan-oportunidades" class="w-full border border-slate-300 p-3 h-24 rounded-xl outline-none focus:border-indigo-500" placeholder="Oportunidades"></textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-yellow-700 mb-2">Ameaças</label>
-                                    <textarea id="input-plan-ameacas" class="w-full border border-slate-300 p-3 h-24 rounded-xl outline-none focus:border-indigo-500" placeholder="Ameaças"></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-8 pt-8 border-t border-slate-200">
-                            <h3 class="text-lg font-bold text-slate-800 mb-6">Comunicação e Marketing</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-sm font-bold text-slate-700 mb-2">Canais de Comunicação</label>
-                                    <textarea id="input-plan-canais" class="w-full border border-slate-300 p-3 h-20 rounded-xl outline-none focus:border-indigo-500" placeholder="Principais canais utilizados"></textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-slate-700 mb-2">Redes Sociais</label>
-                                    <textarea id="input-plan-redes" class="w-full border border-slate-300 p-3 h-20 rounded-xl outline-none focus:border-indigo-500" placeholder="Redes sociais utilizadas"></textarea>
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-sm font-bold text-slate-700 mb-2">Tom de Comunicação</label>
-                                    <textarea id="input-plan-tom" class="w-full border border-slate-300 p-3 h-20 rounded-xl outline-none focus:border-indigo-500" placeholder="Descreva o tom de comunicação"></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button onclick="novaFuncao_analisarComIA('planejamento')" class="w-full mt-8 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition">
-                            <i class="fas fa-magic mr-2"></i> Analisar Planejamento com IA
-                        </button>
-
-                        <div id="box-resultado-planejamento" class="hidden mt-8 p-6 bg-slate-50 border border-slate-200 rounded-xl">
-                            <h3 class="text-lg font-bold text-slate-800 mb-4">Recomendações da IA</h3>
-                            <div id="texto-resultado-planejamento" class="text-slate-700 whitespace-pre-wrap"></div>
-                        </div>
+                        <p class="text-slate-600 text-center py-12">Conteúdo de Planejamento - Em Desenvolvimento</p>
                     </div>
                 </section>
 
                 <!-- PRODUÇÃO DE CONTEÚDO -->
                 <section id="sec-producao" class="hidden">
                     <h1 class="text-4xl font-black text-slate-800 mb-8">Produção de Conteúdo</h1>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- INPUTS -->
-                        <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-fit">
-                            <h3 class="text-lg font-bold text-slate-800 mb-4">Novo Conteúdo</h3>
-                            
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-bold text-slate-700 mb-2">Categoria</label>
-                                    <select id="input-prod-categoria" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500">
-                                        <option value="nota">Nota Oficial</option>
-                                        <option value="release">Press Release</option>
-                                        <option value="linkedin">Post LinkedIn</option>
-                                        <option value="instagram">Post Instagram</option>
-                                        <option value="interno">Comunicado Interno</option>
-                                        <option value="campanha">Campanha</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-bold text-slate-700 mb-2">Título/Assunto</label>
-                                    <input type="text" id="input-prod-titulo" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500" placeholder="Título do conteúdo">
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-bold text-slate-700 mb-2">Descrição/Fato Gerador</label>
-                                    <textarea id="input-prod-descricao" class="w-full border border-slate-300 p-3 h-32 rounded-xl outline-none focus:border-indigo-500" placeholder="Descreva o conteúdo..."></textarea>
-                                </div>
-
-                                <button onclick="novaFuncao_gerarConteudoIA()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition">
-                                    <i class="fas fa-magic mr-2"></i> Gerar com IA
-                                </button>
-
-                                <button onclick="novaFuncao_salvarRascunho()" class="w-full bg-slate-400 text-white font-bold py-3 rounded-xl hover:bg-slate-500 transition">
-                                    <i class="fas fa-save mr-2"></i> Salvar Rascunho
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- VISUALIZAÇÃO -->
-                        <div class="lg:col-span-2 bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                            <h3 class="text-lg font-bold text-slate-800 mb-4">Pré-visualização</h3>
-                            <div id="box-preview-producao" class="bg-slate-50 p-6 rounded-xl border border-slate-200 min-h-96">
-                                <p class="text-slate-500 text-center py-12">Gere um conteúdo para visualizar aqui...</p>
-                            </div>
-
-                            <div class="mt-6 flex gap-3">
-                                <button onclick="novaFuncao_exportarPDF('producao')" class="flex-1 bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition">
-                                    <i class="fas fa-file-pdf mr-2"></i> Exportar PDF
-                                </button>
-                                <button onclick="novaFuncao_copiarTexto('producao')" class="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition">
-                                    <i class="fas fa-copy mr-2"></i> Copiar Texto
-                                </button>
-                                <button onclick="novaFuncao_publicarConteudo()" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition">
-                                    <i class="fas fa-cloud-upload-alt mr-2"></i> Publicar
-                                </button>
-                            </div>
-                        </div>
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                        <p class="text-slate-600 text-center py-12">Conteúdo de Produção - Em Desenvolvimento</p>
                     </div>
                 </section>
 
                 <!-- BIBLIOTECA DE CONTEÚDOS -->
                 <section id="sec-biblioteca" class="hidden">
                     <h1 class="text-4xl font-black text-slate-800 mb-8">Biblioteca de Conteúdos</h1>
-                    
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <div class="mb-6 flex gap-4 flex-wrap">
-                            <input type="text" id="input-biblio-busca" placeholder="Buscar conteúdo..." class="flex-1 min-w-64 border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500">
-                            <select id="input-biblio-filtro" class="border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500">
-                                <option value="">Todos os tipos</option>
-                                <option value="nota">Nota Oficial</option>
-                                <option value="release">Press Release</option>
-                                <option value="linkedin">Post LinkedIn</option>
-                                <option value="instagram">Post Instagram</option>
-                            </select>
-                            <button onclick="novaFuncao_listarBiblioteca()" class="bg-indigo-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-indigo-700">
-                                <i class="fas fa-search mr-2"></i> Buscar
-                            </button>
-                        </div>
-
-                        <div id="box-biblioteca" class="overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <thead class="bg-slate-100 border-b-2 border-slate-300">
-                                    <tr>
-                                        <th class="text-left p-4 font-bold">Data</th>
-                                        <th class="text-left p-4 font-bold">Título</th>
-                                        <th class="text-left p-4 font-bold">Tipo</th>
-                                        <th class="text-left p-4 font-bold">Status</th>
-                                        <th class="text-center p-4 font-bold">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbody-biblioteca">
-                                    <tr>
-                                        <td colspan="5" class="text-center p-4 text-slate-500">Nenhum conteúdo na biblioteca</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                        <p class="text-slate-600 text-center py-12">Biblioteca - Em Desenvolvimento</p>
                     </div>
                 </section>
 
                 <!-- ARQUIVOS -->
                 <section id="sec-arquivos" class="hidden">
                     <h1 class="text-4xl font-black text-slate-800 mb-8">Gestão de Arquivos</h1>
-                    
                     <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                        <div class="mb-8">
-                            <h3 class="text-lg font-bold text-slate-800 mb-4">Upload de Arquivos</h3>
-                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-12 text-center bg-slate-50 cursor-pointer hover:border-indigo-500 transition">
-                                <input type="file" id="input-arquivo-upload" class="hidden" multiple onchange="novaFuncao_handleUploadArquivo(event)">
-                                <button onclick="document.getElementById('input-arquivo-upload').click()" class="text-center w-full">
-                                    <i class="fas fa-cloud-upload-alt text-4xl text-slate-400 mb-4"></i>
-                                    <p class="text-slate-700 font-semibold">Clique aqui ou arraste arquivos</p>
-                                    <p class="text-slate-500 text-sm mt-2">Suporte: PDF, DOC, XLS, JPG, PNG (máx. 50MB)</p>
-                                </button>
-                            </div>
-                        </div>
-
-                        <h3 class="text-lg font-bold text-slate-800 mb-4">Arquivos</h3>
-                        <div id="box-arquivos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div class="p-6 border border-slate-200 rounded-xl text-center">
-                                <i class="fas fa-folder-open text-4xl text-slate-400 mb-2"></i>
-                                <p class="text-slate-500">Nenhum arquivo</p>
-                            </div>
-                        </div>
+                        <p class="text-slate-600 text-center py-12">Gestão de Arquivos - Em Desenvolvimento</p>
                     </div>
                 </section>
 
-                <!-- AUTOMAÇÃO E ALERTAS -->
+                <!-- AUTOMAÇÃO -->
                 <section id="sec-automacao" class="hidden">
                     <h1 class="text-4xl font-black text-slate-800 mb-8">Automação e Alertas</h1>
-                    
                     <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <!-- MONITORAMENTO -->
-                            <div>
-                                <h3 class="text-lg font-bold text-slate-800 mb-4">Monitoramento</h3>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-bold text-slate-700 mb-2">Palavras-chave</label>
-                                        <textarea id="input-auto-palavras" class="w-full border border-slate-300 p-3 h-24 rounded-xl outline-none focus:border-indigo-500" placeholder="Digite palavras-chave separadas por vírgula"></textarea>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-bold text-slate-700 mb-2">Fontes de Monitoramento</label>
-                                        <div class="space-y-2">
-                                            <label class="flex items-center">
-                                                <input type="checkbox" id="check-auto-noticias" class="mr-2"> Notícias Online
-                                            </label>
-                                            <label class="flex items-center">
-                                                <input type="checkbox" id="check-auto-redes" class="mr-2"> Redes Sociais
-                                            </label>
-                                            <label class="flex items-center">
-                                                <input type="checkbox" id="check-auto-blogs" class="mr-2"> Blogs
-                                            </label>
-                                            <label class="flex items-center">
-                                                <input type="checkbox" id="check-auto-forums" class="mr-2"> Fóruns
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <button onclick="novaFuncao_ativarMonitoramento()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700">
-                                        <i class="fas fa-satellite-dish mr-2"></i> Ativar Monitoramento
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- ALERTAS -->
-                            <div>
-                                <h3 class="text-lg font-bold text-slate-800 mb-4">Alertas Configurados</h3>
-                                <div id="box-alertas-config" class="space-y-3">
-                                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                        <p class="text-sm font-semibold text-blue-800">Aguardando configuração...</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-8 pt-8 border-t border-slate-200">
-                            <h3 class="text-lg font-bold text-slate-800 mb-4">Painel de Alertas</h3>
-                            <div id="box-alertas-painel" class="space-y-3">
-                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                                    <p class="text-slate-500 text-sm">Nenhum alerta no momento</p>
-                                </div>
-                            </div>
-                        </div>
+                        <p class="text-slate-600 text-center py-12">Automação - Em Desenvolvimento</p>
                     </div>
                 </section>
 
                 <!-- REDES SOCIAIS -->
                 <section id="sec-redes" class="hidden">
-                    <h1 class="text-4xl font-black text-slate-800 mb-8">Gerenciamento de Redes Sociais</h1>
-                    
+                    <h1 class="text-4xl font-black text-slate-800 mb-8">Redes Sociais</h1>
                     <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                            <button onclick="novaFuncao_conectarRede('instagram')" class="p-6 border-2 border-slate-200 rounded-xl hover:border-pink-500 hover:bg-pink-50 transition text-center">
-                                <i class="fab fa-instagram text-4xl text-pink-500 mb-2"></i>
-                                <h3 class="font-bold text-slate-800">Instagram</h3>
-                                <p class="text-xs text-slate-500 mt-1">Conectar conta</p>
-                            </button>
-
-                            <button onclick="novaFuncao_conectarRede('facebook')" class="p-6 border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition text-center">
-                                <i class="fab fa-facebook text-4xl text-blue-500 mb-2"></i>
-                                <h3 class="font-bold text-slate-800">Facebook</h3>
-                                <p class="text-xs text-slate-500 mt-1">Conectar conta</p>
-                            </button>
-
-                            <button onclick="novaFuncao_conectarRede('linkedin')" class="p-6 border-2 border-slate-200 rounded-xl hover:border-blue-700 hover:bg-blue-50 transition text-center">
-                                <i class="fab fa-linkedin text-4xl text-blue-700 mb-2"></i>
-                                <h3 class="font-bold text-slate-800">LinkedIn</h3>
-                                <p class="text-xs text-slate-500 mt-1">Conectar conta</p>
-                            </button>
-
-                            <button onclick="novaFuncao_conectarRede('twitter')" class="p-6 border-2 border-slate-200 rounded-xl hover:border-sky-500 hover:bg-sky-50 transition text-center">
-                                <i class="fab fa-x-twitter text-4xl text-sky-500 mb-2"></i>
-                                <h3 class="font-bold text-slate-800">X (Twitter)</h3>
-                                <p class="text-xs text-slate-500 mt-1">Conectar conta</p>
-                            </button>
-                        </div>
-
-                        <div class="pt-8 border-t border-slate-200">
-                            <h3 class="text-lg font-bold text-slate-800 mb-4">Calendário de Publicações</h3>
-                            <div id="box-calendario-redes" class="bg-slate-50 p-6 rounded-xl text-center">
-                                <p class="text-slate-500">Calendário será exibido aqui</p>
-                            </div>
-                        </div>
+                        <p class="text-slate-600 text-center py-12">Redes Sociais - Em Desenvolvimento</p>
                     </div>
                 </section>
 
-                <!-- EMAIL EM MASSA -->
+                <!-- EMAIL -->
                 <section id="sec-email" class="hidden">
                     <h1 class="text-4xl font-black text-slate-800 mb-8">Email em Massa</h1>
-                    
                     <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <div class="lg:col-span-1 space-y-6">
-                                <div>
-                                    <h3 class="text-lg font-bold text-slate-800 mb-4">Nova Campanha</h3>
-                                    
-                                    <div class="space-y-4">
-                                        <div>
-                                            <label class="block text-sm font-bold text-slate-700 mb-2">Nome da Campanha</label>
-                                            <input type="text" id="input-email-nome" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500" placeholder="Ex: Campanha 2024">
-                                        </div>
-
-                                        <div>
-                                            <label class="block text-sm font-bold text-slate-700 mb-2">Lista de Contatos</label>
-                                            <select id="input-email-lista" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500">
-                                                <option value="">Selecionar lista</option>
-                                                <option value="geral">Lista Geral</option>
-                                                <option value="press">Press</option>
-                                                <option value="parceiros">Parceiros</option>
-                                            </select>
-                                        </div>
-
-                                        <div>
-                                            <label class="block text-sm font-bold text-slate-700 mb-2">Assunto</label>
-                                            <input type="text" id="input-email-assunto" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500" placeholder="Assunto do email">
-                                        </div>
-
-                                        <button onclick="novaFuncao_agendar('email')" class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl hover:bg-purple-700">
-                                            <i class="fas fa-calendar mr-2"></i> Agendar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="lg:col-span-2">
-                                <h3 class="text-lg font-bold text-slate-800 mb-4">Corpo do Email</h3>
-                                <textarea id="input-email-corpo" class="w-full border border-slate-300 p-4 h-96 rounded-xl outline-none focus:border-indigo-500 font-mono text-sm" placeholder="Digite o conteúdo do email aqui..."></textarea>
-
-                                <div class="mt-4 flex gap-3">
-                                    <button onclick="novaFuncao_previewEmail()" class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700">
-                                        <i class="fas fa-eye mr-2"></i> Prévia
-                                    </button>
-                                    <button onclick="novaFuncao_enviarEmail()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700">
-                                        <i class="fas fa-paper-plane mr-2"></i> Enviar Agora
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-8 pt-8 border-t border-slate-200">
-                            <h3 class="text-lg font-bold text-slate-800 mb-4">Campanhas Recentes</h3>
-                            <div id="box-campanhas-email" class="overflow-x-auto">
-                                <table class="w-full text-sm">
-                                    <thead class="bg-slate-100 border-b-2 border-slate-300">
-                                        <tr>
-                                            <th class="text-left p-4 font-bold">Data</th>
-                                            <th class="text-left p-4 font-bold">Campanha</th>
-                                            <th class="text-left p-4 font-bold">Status</th>
-                                            <th class="text-center p-4 font-bold">Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tbody-campanhas-email">
-                                        <tr>
-                                            <td colspan="4" class="text-center p-4 text-slate-500">Nenhuma campanha</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                        <p class="text-slate-600 text-center py-12">Email - Em Desenvolvimento</p>
                     </div>
                 </section>
 
-                <!-- CLIMA ORGANIZACIONAL -->
+                <!-- CLIMA -->
                 <section id="sec-clima" class="hidden">
                     <h1 class="text-4xl font-black text-slate-800 mb-8">Clima Organizacional</h1>
-                    
                     <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                            <!-- ATIVIDADES INTERNAS -->
-                            <div>
-                                <h3 class="text-lg font-bold text-slate-800 mb-4">Registrar Atividade</h3>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-bold text-slate-700 mb-2">Tipo de Atividade</label>
-                                        <select id="input-clima-tipo" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500">
-                                            <option value="evento">Evento</option>
-                                            <option value="reuniao">Reunião</option>
-                                            <option value="capacitacao">Capacitação</option>
-                                            <option value="comemoração">Comemoração</option>
-                                            <option value="conquista">Conquista</option>
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-bold text-slate-700 mb-2">Título</label>
-                                        <input type="text" id="input-clima-titulo" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500" placeholder="Título da atividade">
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-bold text-slate-700 mb-2">Descrição</label>
-                                        <textarea id="input-clima-descricao" class="w-full border border-slate-300 p-3 h-24 rounded-xl outline-none focus:border-indigo-500" placeholder="Descreva a atividade"></textarea>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-bold text-slate-700 mb-2">Data</label>
-                                        <input type="date" id="input-clima-data" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500">
-                                    </div>
-
-                                    <button onclick="novaFuncao_salvarAtividadeClima()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700">
-                                        <i class="fas fa-plus mr-2"></i> Registrar Atividade
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- COMUNICADOS INTERNOS -->
-                            <div>
-                                <h3 class="text-lg font-bold text-slate-800 mb-4">Comunicado Interno</h3>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-bold text-slate-700 mb-2">Título</label>
-                                        <input type="text" id="input-clima-com-titulo" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500" placeholder="Título do comunicado">
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-bold text-slate-700 mb-2">Mensagem</label>
-                                        <textarea id="input-clima-com-mensagem" class="w-full border border-slate-300 p-3 h-32 rounded-xl outline-none focus:border-indigo-500" placeholder="Mensagem para a equipe"></textarea>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-bold text-slate-700 mb-2">Destinatários</label>
-                                        <select id="input-clima-com-dest" class="w-full border border-slate-300 p-3 rounded-xl outline-none focus:border-indigo-500">
-                                            <option value="todos">Todos</option>
-                                            <option value="equipe">Equipe</option>
-                                            <option value="gestores">Gestores</option>
-                                            <option value="custom">Seleção customizada</option>
-                                        </select>
-                                    </div>
-
-                                    <button onclick="novaFuncao_enviarComunicado()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700">
-                                        <i class="fas fa-envelope mr-2"></i> Enviar Comunicado
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="pt-8 border-t border-slate-200">
-                            <h3 class="text-lg font-bold text-slate-800 mb-4">Atividades Recentes</h3>
-                            <div id="box-atividades-clima" class="space-y-3">
-                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                                    <p class="text-slate-500 text-sm">Nenhuma atividade registrada</p>
-                                </div>
-                            </div>
-                        </div>
+                        <p class="text-slate-600 text-center py-12">Clima Organizacional - Em Desenvolvimento</p>
                     </div>
                 </section>
 
-                <!-- HISTÓRICO (EXISTENTE - MELHORADO) -->
+                <!-- HISTÓRICO -->
                 <section id="sec-historico" class="hidden">
                     <h1 class="text-4xl font-black text-slate-800 mb-8">Histórico & Auditoria</h1>
-                    <p class="text-slate-500 mb-8">Registros de todos os processamentos realizados.</p>
                     <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                        <div class="mb-6 flex gap-4 flex-wrap">
-                            <div class="flex-1 min-w-64">
-                                <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Filtrar por Módulo</label>
-                                <select id="input-filtro-modulo" class="w-full border border-slate-300 p-3 rounded-xl outline-none">
-                                    <option value="">Todos os módulos</option>
-                                    <option value="ata">Inteligência de Atas</option>
-                                    <option value="hub">Hub de Conteúdo</option>
-                                    <option value="plan">Planejamento</option>
-                                    <option value="clipping">Clipping & Alertas</option>
-                                    <option value="transparencia">Transparência</option>
-                                </select>
-                            </div>
-                            <div class="flex gap-2 items-end">
-                                <button onclick="novaFuncao_listarHistorico()" class="bg-indigo-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-indigo-700">
-                                    <i class="fas fa-sync mr-2"></i> Atualizar
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div id="box-historico" class="overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <thead class="bg-slate-100 border-b-2 border-slate-300">
-                                    <tr>
-                                        <th class="text-left p-4 font-bold">Data/Hora</th>
-                                        <th class="text-left p-4 font-bold">Módulo</th>
-                                        <th class="text-left p-4 font-bold">Entrada</th>
-                                        <th class="text-left p-4 font-bold">Saída</th>
-                                        <th class="text-center p-4 font-bold">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbody-historico">
-                                    <tr>
-                                        <td colspan="5" class="text-center p-4 text-slate-500">Clique em "Atualizar" para carregar histórico...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        <p class="text-slate-600 text-center py-12">Histórico - Em Desenvolvimento</p>
                     </div>
                 </section>
 
                 <!-- CONFIGURAÇÕES -->
                 <section id="sec-configuracoes" class="hidden">
-                    <h1 class="text-4xl font-black text-slate-800 mb-8">Configurações da Instituição</h1>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <!-- LOGO E IMAGEM -->
-                        <div class="lg:col-span-1">
-                            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                                <h3 class="text-lg font-bold text-slate-800 mb-6">Identidade Visual</h3>
-                                
-                                <div class="space-y-6">
-                                    <!-- LOGO -->
-                                    <div>
-                                        <label class="block text-sm font-bold text-slate-700 mb-3">Logo Institucional</label>
-                                        <div class="w-full h-32 bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-indigo-500 transition" onclick="document.getElementById('input-logo-upload').click()">
-                                            <div class="text-center">
-                                                <i class="fas fa-image text-3xl text-slate-400 mb-2"></i>
-                                                <p class="text-xs text-slate-500">Clique para upload</p>
-                                            </div>
-                                        </div>
-                                        <input type="file" id="input-logo-upload" class="hidden" accept="image/*" onchange="novaFuncao_uploadLogo(event)">
-                                    </div>
+                    <h1 class="text-4xl font-black text-slate-800 mb-8">Configurações</h1>
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                        <p class="text-slate-600 text-center py-12">Configurações - Em Desenvolvimento</p>
+                    </div>
+                </section>
 
-                                    <!-- CAPA -->
-                                    <div>
-                                        <label class="block text-sm font-bold text-slate-700 mb-3">Imagem de Capa</label>
-                                        <div class="w-full h-32 bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-indigo-500 transition" onclick="document.getElementById('input-capa-upload').click()">
-                                            <div class="text-center">
-                                                <i class="fas fa-image text-3xl text-slate-400 mb-2"></i>
-                                                <p class="text-xs text-slate-500">Clique para upload</p>
-                                            </div>
-                                        </div>
-                                        <input type="file" id="input-capa-upload" class="hidden" accept="image/*" onchange="novaFuncao_uploadCapa(event)">
-                                    </div>
+                <!-- USUÁRIOS -->
+                <section id="sec-usuarios" class="hidden">
+                    <h1 class="text-4xl font-black text-slate-800 mb-8">Gestão de Usuários</h1>
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                        <p class="text-slate-600 text-center py-12">Usuários - Em Desenvolvimento</p>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
 
-                                    <!-- CORES -->
-                                    <div>
-                                        <label class="block text-sm font-bold text-slate-700 mb-3">Cor Primária</label>
-                                        <div class="flex gap-3">
-                                            <input type="color" id="input-cor-primaria" value="#4f46e5" class="w-16 h-10 rounded-lg cursor-pointer">
-                                            <input type="text" id="input-cor-primaria-texto" class="flex-1 border border-slate-300 p-2 rounded-lg outline-none" placeholder="#4f46e5">
-                                        </div>
-                                    </div>
+    <script>
+        // ===== CONFIGURAÇÃO DO SUPABASE =====
+        const SUPABASE_URL = 'https://seu-projeto.supabase.co'; // SUBSTITUIR
+        const SUPABASE_ANON_KEY = 'sua-chave-anon-publica'; // SUBSTITUIR
+        let supabase = null;
+        let currentUser = null;
 
-                                    
+        // Inicializar Supabase
+        async function novaFuncao_inicializarSupabase() {
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('✓ Supabase inicializado');
+                
+                // Verificar sessão existente
+                await novaFuncao_verificarSessao();
+            } catch (error) {
+                console.error('Erro ao inicializar Supabase:', error);
+                novaFuncao_mostrarToast('Erro ao conectar com o servidor', 'error');
+            }
+        }
+
+        // ===== FUNÇÕES DE AUTENTICAÇÃO =====
+
+        // Verificar se usuário está autenticado
+        async function novaFuncao_verificarSessao() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (session) {
+                    currentUser = session.user;
+                    await novaFuncao_carregarDadosUsuario();
+                    novaFuncao_mostrarDashboard();
+                } else {
+                    novaFuncao_mostrarLogin();
+                }
+            } catch (error) {
+                console.error('Erro ao verificar sessão:', error);
+                novaFuncao_mostrarLogin();
+            }
+        }
+
+        // Fazer login
+        async function novaFuncao_fazerLogin() {
+            const email = document.getElementById('input-login-email').value.trim();
+            const senha = document.getElementById('input-login-senha').value;
+            
+            // Limpar erros
+            document.getElementById('error-email-login').textContent = '';
+            document.getElementById('error-senha-login').textContent = '';
+            
+            // Validar
+            if (!email) {
+                document.getElementById('error-email-login').textContent = 'Email é obrigatório';
+                return;
+            }
+            if (!novaFuncao_validarEmail(email)) {
+                document.getElementById('error-email-login').textContent = 'Email inválido';
+                return;
+            }
+            if (!senha) {
+                document.getElementById('error-senha-login').textContent = 'Senha é obrigatória';
+                return;
+            }
+            
+            // Mostrar loading
+            const btn = document.getElementById('btn-fazer-login');
+            btn.classList.add('btn-loading');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Entrando...';
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: senha
+                });
+                
+                if (error) {
+                    if (error.message.includes('Invalid login credentials')) {
+                        document.getElementById('error-email-login').textContent = 'Email ou senha incorretos';
+                    } else {
+                        novaFuncao_mostrarToast(error.message, 'error');
+                    }
+                    return;
+                }
+                
+                currentUser = data.user;
+                await novaFuncao_carregarDadosUsuario();
+                novaFuncao_mostrarToast('Login realizado com sucesso!', 'success');
+                novaFuncao_mostrarDashboard();
+                
+            } catch (error) {
+                console.error('Erro ao fazer login:', error);
+                novaFuncao_mostrarToast('Erro ao fazer login', 'error');
+            } finally {
+                btn.classList.remove('btn-loading');
+                btn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Entrar';
+            }
+        }
+
+        // Criar conta
+        async function novaFuncao_criarConta() {
+            const nome = document.getElementById('input-cadastro-nome').value.trim();
+            const email = document.getElementById('input-cadastro-email').value.trim();
+            const cargo = document.getElementById('input-cadastro-cargo').value.trim();
+            const senha = document.getElementById('input-cadastro-senha').value;
+            const senhaConfirma = document.getElementById('input-cadastro-senha-confirma').value;
+            const termosAceitos = document.getElementById('input-cadastro-termos').checked;
+            
+            // Limpar erros
+            document.getElementById('error-nome-cadastro').textContent = '';
+            document.getElementById('error-email-cadastro').textContent = '';
+            document.getElementById('error-cargo-cadastro').textContent = '';
+            document.getElementById('error-senha-cadastro').textContent = '';
+            document.getElementById('error-senha-confirma-cadastro').textContent = '';
+            document.getElementById('error-termos-cadastro').textContent = '';
+            
+            // Validar
+            let temErro = false;
+            
+            if (!nome) {
+                document.getElementById('error-nome-cadastro').textContent = 'Nome é obrigatório';
+                temErro = true;
+            }
+            if (!email || !novaFuncao_validarEmail(email)) {
+                document.getElementById('error-email-cadastro').textContent = 'Email válido é obrigatório';
+                temErro = true;
+            }
+            if (!cargo) {
+                document.getElementById('error-cargo-cadastro').textContent = 'Cargo é obrigatório';
+                temErro = true;
+            }
+            if (!senha || senha.length < 8) {
+                document.getElementById('error-senha-cadastro').textContent = 'Senha deve ter no mínimo 8 caracteres';
+                temErro = true;
+            }
+            if (senha !== senhaConfirma) {
+                document.getElementById('error-senha-confirma-cadastro').textContent = 'As senhas não coincidem';
+                temErro = true;
+            }
+            if (!termosAceitos) {
+                document.getElementById('error-termos-cadastro').textContent = 'Você precisa aceitar os termos';
+                temErro = true;
+            }
+            
+            if (temErro) return;
+            
+            // Mostrar loading
+            const btn = document.getElementById('btn-criar-conta');
+            btn.classList.add('btn-loading');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Criando conta...';
+            
+            try {
+                // Criar usuário no Supabase Auth
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: senha,
+                    options: {
+                        data: {
+                            full_name: nome,
+                            cargo: cargo
+                        }
+                    }
+                });
+                
+                if (error) {
+                    if (error.message.includes('already registered')) {
+                        document.getElementById('error-email-cadastro').textContent = 'Este email já está cadastrado';
+                    } else {
+                        novaFuncao_mostrarToast(error.message, 'error');
+                    }
+                    return;
+                }
+                
+                // Criar registro na tabela usuarios
+                if (data.user) {
+                    await supabase.from('usuarios').insert([{
+                        id: data.user.id,
+                        email: email,
+                        nome: nome,
+                        cargo: cargo,
+                        nivel_acesso: 'editor',
+                        criado_em: new Date().toISOString()
+                    }]);
+                }
+                
+                novaFuncao_mostrarToast('Conta criada! Verifique seu email para confirmar.', 'success');
+                setTimeout(() => {
+                    novaFuncao_voltarLogin();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Erro ao criar conta:', error);
+                novaFuncao_mostrarToast('Erro ao criar conta', 'error');
+            } finally {
+                btn.classList.remove('btn-loading');
+                btn.innerHTML = '<i class="fas fa-user-plus mr-2"></i> Criar Conta';
+            }
+        }
+
+        // Login com Google
+        async function novaFuncao_loginComGoogle() {
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        queryParams: {
+                            access_type: 'offline',
+                            prompt: 'consent',
+                        }
+                    }
+                });
+                
+                if (error) {
+                    novaFuncao_mostrarToast('Erro ao fazer login com Google', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao fazer login com Google:', error);
+                novaFuncao_mostrarToast('Erro ao conectar com Google', 'error');
+            }
+        }
+
+        // Enviar link de recuperação
+        async function novaFuncao_enviarRecuperacao() {
+            const email = document.getElementById('input-recuperacao-email').value.trim();
+            
+            document.getElementById('error-email-recuperacao').textContent = '';
+            document.getElementById('success-recuperacao').textContent = '';
+            
+            if (!email || !novaFuncao_validarEmail(email)) {
+                document.getElementById('error-email-recuperacao').textContent = 'Email válido é obrigatório';
+                return;
+            }
+            
+            const btn = document.getElementById('btn-enviar-recuperacao');
+            btn.classList.add('btn-loading');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Enviando...';
+            
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email);
+                
+                if (error) {
+                    novaFuncao_mostrarToast(error.message, 'error');
+                    return;
+                }
+                
+                document.getElementById('success-recuperacao').textContent = 'Link enviado! Verifique seu email.';
+                
+            } catch (error) {
+                console.error('Erro ao enviar recuperação:', error);
+                novaFuncao_mostrarToast('Erro ao enviar link', 'error');
+            } finally {
+                btn.classList.remove('btn-loading');
+                btn.innerHTML = '<i class="fas fa-envelope mr-2"></i> Enviar Link';
+            }
+        }
+
+        // Logout
+        async function novaFuncao_logout() {
+            const { error } = await supabase.auth.signOut();
+            
+            if (error) {
+                novaFuncao_mostrarToast('Erro ao sair', 'error');
+                return;
+            }
+            
+            currentUser = null;
+            novaFuncao_mostrarLogin();
+            novaFuncao_mostrarToast('Você saiu com sucesso', 'success');
+        }
+
+        // ===== FUNÇÕES DE INTERFACE =====
+
+        // Carregar dados do usuário
+        async function novaFuncao_carregarDadosUsuario() {
+            if (!currentUser) return;
+            
+            try {
+                // Carregar dados adicionais da tabela usuarios se existir
+                const { data } = await supabase
+                    .from('usuarios')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                if (data) {
+                    document.getElementById('user-name').textContent = data.nome || currentUser.email;
+                    document.getElementById('user-role').textContent = data.cargo || 'Usuário';
+                } else {
+                    // Se não existir registro, usar dados do Auth
+                    const nome = currentUser.user_metadata?.full_name || currentUser.email;
+                    const cargo = currentUser.user_metadata?.cargo || 'Usuário';
+                    document.getElementById('user-name').textContent = nome;
+                    document.getElementById('user-role').textContent = cargo;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados do usuário:', error);
+                document.getElementById('user-name').textContent = currentUser.email;
+            }
+        }
+
+        // Mostrar dashboard
+        function novaFuncao_mostrarDashboard() {
+            document.getElementById('modal-login').classList.add('hidden');
+            document.getElementById('app-main').classList.remove('hidden');
+            ativar('dashboard');
+        }
+
+        // Mostrar login
+        function novaFuncao_mostrarLogin() {
+            document.getElementById('modal-login').classList.remove('hidden');
+            document.getElementById('app-main').classList.add('hidden');
+        }
+
+        // Mostrar formulário de cadastro
+        function novaFuncao_mostrarCadastro() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('recuperacao-form').classList.add('hidden');
+            document.getElementById('cadastro-form').classList.remove('hidden');
+        }
+
+        // Mostrar formulário de recuperação
+        function novaFuncao_mostrarRecuperacao() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('cadastro-form').classList.add('hidden');
+            document.getElementById('recuperacao-form').classList.remove('hidden');
+        }
+
+        // Voltar ao login
+        function novaFuncao_voltarLogin() {
+            document.getElementById('cadastro-form').classList.add('hidden');
+            document.getElementById('recuperacao-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+            
+            // Limpar formulários
+            document.getElementById('input-login-email').value = '';
+            document.getElementById('input-login-senha').value = '';
+            document.getElementById('input-cadastro-nome').value = '';
+            document.getElementById('input-cadastro-email').value = '';
+            document.getElementById('input-cadastro-cargo').value = '';
+            document.getElementById('input-cadastro-senha').value = '';
+            document.getElementById('input-cadastro-senha-confirma').value = '';
+            document.getElementById('input-cadastro-termos').checked = false;
+            document.getElementById('input-recuperacao-email').value = '';
+        }
+
+        // Toggle mostrar/ocultar senha
+        function novaFuncao_toggleMostrarSenha(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // Abrir termos
+        function novaFuncao_abrirTermos() {
+            alert('Termos de Uso\n\nEste é um exemplo de termos. Substitua pelo texto real dos seus termos.');
+        }
+
+        // Abrir privacidade
+        function novaFuncao_abrirPrivacidade() {
+            alert('Política de Privacidade\n\nEste é um exemplo de privacidade. Substitua pelo texto real da sua política.');
+        }
+
+        // Mostrar notificação (toast)
+        function novaFuncao_mostrarToast(mensagem, tipo = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast bg-${tipo === 'error' ? 'red' : tipo === 'success' ? 'green' : 'blue'}-600 text-white p-4 rounded-lg shadow-lg`;
+            toast.innerHTML = `<i class="fas fa-${tipo === 'error' ? 'exclamation-circle' : tipo === 'success' ? 'check-circle' : 'info-circle'} mr-2"></i> ${mensagem}`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // ===== FUNÇÕES UTILITÁRIAS =====
+
+        // Validar email
+        function novaFuncao_validarEmail(email) {
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return regex.test(email);
+        }
+
+        // Toggle sidebar (existente)
+        function novaFuncao_toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('sidebar-collapsed');
+            sidebar.classList.toggle('sidebar-expanded');
+        }
+
+        // Ativar seção (existente)
+        function ativar(aba) {
+            const secoes = ['dashboard', 'planejamento', 'producao', 'biblioteca', 'arquivos', 'automacao', 'redes', 'email', 'clima', 'historico', 'configuracoes', 'usuarios'];
+            secoes.forEach(id => {
+                const sec = document.getElementById('sec-' + id);
+                const btn = document.getElementById('btn-' + id);
+                if(sec) sec.style.display = 'none';
+                if(btn) btn.className = "w-full text-left p-4 hover:bg-slate-800 border-l-4 border-transparent transition-colors";
+            });
+            const sec = document.getElementById('sec-' + aba);
+            const btn = document.getElementById('btn-' + aba);
+            if(sec) sec.style.display = 'block';
+            if(btn) btn.className = "w-full text-left p-4 hover:bg-slate-800 border-l-4 border-indigo-500 bg-slate-800 transition-colors";
+        }
+
+        // ===== INICIALIZAÇÃO =====
+        window.addEventListener('load', async () => {
+            await novaFuncao_inicializarSupabase();
+        });
+
+        // Redirecionar se tentar acessar sem autenticação
+        window.addEventListener('beforeunload', () => {
+            if (!currentUser && !document.getElementById('app-main').classList.contains('hidden')) {
+                novaFuncao_mostrarLogin();
+            }
+        });
+    </script>
+</body>
+</html>
