@@ -22,6 +22,7 @@
             <button onclick="ativar('plan')" class="w-full text-left p-4 hover:bg-slate-800 border-l-4 border-transparent transition-colors focus:outline-none" id="btn-plan"><i class="fas fa-calendar-alt w-6 text-center"></i> Planejamento 360º</button>
             <button onclick="ativar('clipping')" class="w-full text-left p-4 hover:bg-slate-800 border-l-4 border-transparent transition-colors focus:outline-none" id="btn-clipping"><i class="fas fa-satellite-dish w-6 text-center"></i> Clipping & Alertas</button>
             <button onclick="ativar('transparencia')" class="w-full text-left p-4 hover:bg-slate-800 border-l-4 border-transparent transition-colors focus:outline-none" id="btn-transparencia"><i class="fas fa-file-contract w-6 text-center"></i> Transparência</button>
+            <button onclick="ativar('historico')" class="w-full text-left p-4 hover:bg-slate-800 border-l-4 border-transparent transition-colors focus:outline-none" id="btn-historico"><i class="fas fa-history w-6 text-center"></i> Histórico & Auditoria</button>
         </nav>
     </aside>
 
@@ -131,6 +132,48 @@
                 </div>
             </div>
         </section>
+
+        <section id="sec-historico" class="hidden">
+            <h1 class="text-4xl font-black mb-2 text-slate-800">Histórico & Auditoria</h1>
+            <p class="text-slate-500 mb-8">Registros de todos os processamentos realizados.</p>
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div class="mb-6 flex gap-4 flex-wrap">
+                    <div class="flex-1 min-w-64">
+                        <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Filtrar por Módulo</label>
+                        <select id="input-filtro-modulo" class="w-full border border-slate-300 p-3 rounded-xl outline-none">
+                            <option value="">Todos os módulos</option>
+                            <option value="ata">Inteligência de Atas</option>
+                            <option value="hub">Hub de Conteúdo</option>
+                            <option value="plan">Planejamento 360º</option>
+                            <option value="clipping">Clipping & Alertas</option>
+                            <option value="transparencia">Transparência</option>
+                        </select>
+                    </div>
+                    <div class="flex gap-2 items-end">
+                        <button onclick="novaFuncao_listarHistorico()" class="bg-indigo-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-indigo-700"><i class="fas fa-sync mr-2"></i> Atualizar</button>
+                    </div>
+                </div>
+                
+                <div id="box-historico" class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-100 border-b-2 border-slate-300">
+                            <tr>
+                                <th class="text-left p-4 font-bold">Data/Hora</th>
+                                <th class="text-left p-4 font-bold">Módulo</th>
+                                <th class="text-left p-4 font-bold">Entrada (primeiros 100 char)</th>
+                                <th class="text-left p-4 font-bold">Saída (primeiros 100 char)</th>
+                                <th class="text-center p-4 font-bold">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-historico">
+                            <tr>
+                                <td colspan="5" class="text-center p-4 text-slate-500">Clique em "Atualizar" para carregar histórico...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
     </main>
 
     <script>
@@ -145,7 +188,7 @@
         }
 
         function ativar(aba) {
-            const secoes = ['dash', 'cerebro', 'atas', 'hub', 'plan', 'clipping', 'transparencia'];
+            const secoes = ['dash', 'cerebro', 'atas', 'hub', 'plan', 'clipping', 'transparencia', 'historico'];
             secoes.forEach(id => {
                 let sec = document.getElementById('sec-' + id);
                 let btn = document.getElementById('btn-' + id);
@@ -217,9 +260,160 @@
                 const data = await response.json();
                 if(data.error) throw new Error(data.error.message);
                 
-                resText.innerHTML = data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                const textoProcessado = data.candidates[0].content.parts[0].text;
+                resText.innerHTML = textoProcessado.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 resBox.style.display = 'block';
+                
+                // Novo: Salvar no histórico
+                let entradaCompleta = '';
+                if (modulo === 'ata') entradaCompleta = document.getElementById('input-ata').value;
+                else if (modulo === 'hub') entradaCompleta = document.getElementById('input-pauta').value;
+                else if (modulo === 'plan') entradaCompleta = document.getElementById('input-objetivo').value;
+                else if (modulo === 'clipping') entradaCompleta = document.getElementById('input-clipping').value;
+                else if (modulo === 'transparencia') entradaCompleta = document.getElementById('input-transparencia').value;
+                
+                novaFuncao_salvarProcessamento(modulo, entradaCompleta, textoProcessado);
             } catch (error) { alert('Erro: ' + error.message); } finally { btn.innerHTML = txtOrg; btn.disabled = false; }
+        }
+
+        // ===== NOVO: SISTEMA DE HISTÓRICO E AUDITORIA =====
+
+        // Função para salvar processamento no Supabase
+        async function novaFuncao_salvarProcessamento(modulo, entrada, saida) {
+            try {
+                const nome = localStorage.getItem('unirp_nome') || 'Anônimo';
+                const supaUrl = localStorage.getItem('unirp_supa_url');
+                const supaKey = localStorage.getItem('unirp_supa_key');
+                
+                if (!supaUrl || !supaKey) {
+                    console.warn('Credentials não configuradas. Histórico não será salvo.');
+                    return;
+                }
+
+                const banco = supabase.createClient(supaUrl, supaKey);
+                
+                const { data, error } = await banco.from('processamentos').insert([
+                    {
+                        instituicao_nome: nome,
+                        modulo: modulo,
+                        entrada: entrada.substring(0, 5000),
+                        saida: saida.substring(0, 5000),
+                        status: 'concluído',
+                        timestamp: new Date().toISOString()
+                    }
+                ]).select();
+
+                if (error) {
+                    console.error('Erro ao salvar processamento:', error.message);
+                } else {
+                    console.log('✓ Processamento registrado com sucesso');
+                }
+            } catch (error) {
+                console.error('Erro crítico ao salvar histórico:', error.message);
+            }
+        }
+
+        // Função para listar histórico com filtros
+        async function novaFuncao_listarHistorico() {
+            try {
+                const supaUrl = localStorage.getItem('unirp_supa_url');
+                const supaKey = localStorage.getItem('unirp_supa_key');
+                const nome = localStorage.getItem('unirp_nome') || 'Anônimo';
+                const filtroModulo = document.getElementById('input-filtro-modulo').value;
+
+                if (!supaUrl || !supaKey) {
+                    alert('Configure suas credenciais no Cérebro Institucional primeiro.');
+                    return;
+                }
+
+                const banco = supabase.createClient(supaUrl, supaKey);
+                
+                let query = banco.from('processamentos')
+                    .select('*')
+                    .eq('instituicao_nome', nome)
+                    .order('timestamp', { ascending: false })
+                    .limit(100);
+
+                if (filtroModulo) {
+                    query = query.eq('modulo', filtroModulo);
+                }
+
+                const { data, error } = await query;
+
+                if (error) {
+                    alert('Erro ao carregar histórico: ' + error.message);
+                    return;
+                }
+
+                const tbody = document.getElementById('tbody-historico');
+                tbody.innerHTML = '';
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-slate-500">Nenhum registro encontrado.</td></tr>';
+                    return;
+                }
+
+                data.forEach(item => {
+                    const data_formatada = new Date(item.timestamp).toLocaleString('pt-BR');
+                    const entrada_preview = item.entrada.substring(0, 100).replace(/\n/g, ' ') + (item.entrada.length > 100 ? '...' : '');
+                    const saida_preview = item.saida.substring(0, 100).replace(/\n/g, ' ') + (item.saida.length > 100 ? '...' : '');
+                    
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b border-slate-200 hover:bg-slate-50';
+                    tr.innerHTML = `
+                        <td class="p-4 text-slate-600">${data_formatada}</td>
+                        <td class="p-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
+                                ${item.modulo.toUpperCase()}
+                            </span>
+                        </td>
+                        <td class="p-4 text-slate-600 font-mono text-xs" title="${item.entrada}">${entrada_preview}</td>
+                        <td class="p-4 text-slate-600 font-mono text-xs" title="${item.saida}">${saida_preview}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="novaFuncao_verDetalhes('${item.id}', '${item.entrada.replace(/'/g, "\\'")}', '${item.saida.replace(/'/g, "\\'")}')" class="text-indigo-600 hover:text-indigo-800 font-bold text-sm mr-2">Ver</button>
+                            <button onclick="novaFuncao_copiarSaida('${item.saida.replace(/'/g, "\\'")}')" class="text-green-600 hover:text-green-800 font-bold text-sm">Copiar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (error) {
+                alert('Erro crítico: ' + error.message);
+            }
+        }
+
+        // Função para ver detalhes completos
+        function novaFuncao_verDetalhes(id, entrada, saida) {
+            const modal = document.createElement('div');
+            modal.id = 'modal-detalhes-historico';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl max-w-2xl w-11/12 max-h-96 overflow-auto p-8 shadow-2xl">
+                    <h2 class="text-2xl font-black mb-4 text-slate-800">Detalhes do Processamento</h2>
+                    
+                    <div class="mb-6">
+                        <h3 class="text-lg font-bold text-indigo-700 mb-2">Entrada:</h3>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 whitespace-pre-wrap text-sm font-mono text-slate-700 max-h-40 overflow-y-auto">${entrada.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h3 class="text-lg font-bold text-indigo-700 mb-2">Saída (resposta IA):</h3>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 whitespace-pre-wrap text-sm text-slate-700 max-h-40 overflow-y-auto">${saida.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                    </div>
+                    
+                    <button onclick="document.getElementById('modal-detalhes-historico').remove()" class="bg-slate-600 text-white font-bold px-6 py-2 rounded-xl hover:bg-slate-700 w-full">Fechar</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Função para copiar saída para clipboard
+        function novaFuncao_copiarSaida(saida) {
+            navigator.clipboard.writeText(saida).then(() => {
+                alert('✓ Conteúdo copiado para a área de transferência!');
+            }).catch(() => {
+                alert('Erro ao copiar. Tente novamente.');
+            });
         }
     </script>
 </body>
